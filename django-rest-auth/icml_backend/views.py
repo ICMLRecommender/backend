@@ -12,7 +12,10 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 
 
 class IndexView(GenericAPIView):
-	permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
 
-	def get(self, request):
-		return JsonResponse({'test': 1, 'test1' : 2})
+    def get(self, request):
+        return JsonResponse({'test_get': 1, 'test_get1' : 2})
+
+    def post(self, request):
+        return JsonResponse({'test_post': 1, 'test_post1' : 2})
