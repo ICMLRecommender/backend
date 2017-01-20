@@ -45,6 +45,8 @@ INSTALLED_APPS = (
     'allauth.socialaccount',
     'allauth.socialaccount.providers.facebook',
     'rest_framework_swagger',
+
+    'icml_backend',
 )
 
 MIDDLEWARE_CLASSES = (
