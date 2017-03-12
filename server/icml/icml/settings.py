@@ -25,8 +25,8 @@ SECRET_KEY = 'ubbagvj0v-=pz@!-9ohk3x%f-n^oy_r7c!m&d66)5kcyw4)aua'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['icml.papro.org.uk']
+SECURE_SSL_REDIRECT = True
 
 # Application definition
 
