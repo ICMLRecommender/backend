@@ -8,7 +8,7 @@ from django import shortcuts
 from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
-import couchdb_api
+from server import couchdb_api
 
 def index(request):
     return HttpResponse("Test")
@@ -20,31 +20,35 @@ def registration(request):
     username = params['username']
     password = params['password']
 
-    new_user = couchdb_api.SERVER.add_user(username, password, roles=None)
+    try:
+        new_user = couchdb_api.SERVER.add_user(username, password, roles=None)
+    except:
+        return HttpResponseBadRequest('Username existed.')
 
-    # new_user_database = couchdb_api.SERVER.create(username)
-    # security_doc = {
-    #         "_id" : "_security",
-    #         "admins": {
-    #             "names": [
-    #                 "admin"
-    #             ],
-    #             "roles": [
-    #                 "admins"
-    #             ]
-    #         },
-    #         "members": {
-    #             "names": [username],
-    #             "roles": [
-    #                 "users"
-    #             ]
-    #         }
-    #     }
 
-    # try:
-    #     new_user_database.save(security_doc)
-    # except KeyError: # Although there's an error, the document is updated
-    #     pass
+    new_user_database = couchdb_api.SERVER.create(username)
+    security_doc = {
+            "_id" : "_security",
+            "admins": {
+                "names": [
+                    "admin"
+                ],
+                "roles": [
+                    "admins"
+                ]
+            },
+            "members": {
+                "names": [username],
+                "roles": [
+                    "users"
+                ]
+            }
+        }
+
+    try:
+        new_user_database.save(security_doc)
+    except KeyError: # Although there's an error, the document is updated
+        pass
 
     # print new_user_database['_security']
 
