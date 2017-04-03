@@ -1,4 +1,5 @@
 import uuid
+import datetime
 
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseBadRequest, HttpResponseNotFound
 from django.http import JsonResponse
@@ -49,6 +50,13 @@ def registration(request):
         new_user_database.save(security_doc)
     except KeyError: # Although there's an error, the document is updated
         pass
+
+    secret_doc = {
+        '_id' : "secret",
+        'value' : uuid.uuid4().hex
+    }
+
+    new_user_database.save(secret_doc)
 
     # print new_user_database['_security']
 
@@ -104,3 +112,117 @@ def reset_password(request):
     password_reset_db.delete(change_doc)
 
     return JsonResponse({'status' : True, 'message' : 'Password udpated.'})
+
+############################################################################################################################
+############################################End of user authentication section##############################################
+############################################################################################################################
+
+def _check_user_secret(authenticated_post_request_params):
+    try:
+        username = authenticated_post_request_params['username']
+        secret = authenticated_post_request_params['secret']
+        user_db = couchdb_api.get_database(username)
+
+        print "three %s" % secret
+        return user_db['secret']['value'] == secret
+    except:
+        import traceback
+        print traceback.format_exc()
+        return False
+
+@csrf_exempt
+@require_POST
+def post_comment(request):
+    params = request.POST
+
+    if not _check_user_secret(params):
+        return HttpResponseBadRequest('Unable to verify user identity.')
+
+    paper_id = params['paper_id']
+    comment = params['comment']
+
+    comment_db = couchdb_api.get_database(couchdb_api.DB_COMMENTS)
+
+    try:
+        paper = comment_db[paper_id]
+    except:
+        paper = {
+            '_id' : paper_id,
+            'comments' : []
+        }
+
+    comment_object = {
+        'id' : str(uuid.uuid4()),
+        'time' : datetime.datetime.now().isoformat(),
+        'comment' : comment,
+        'username' : params['username']
+    }
+    paper['comments'].append(comment_object)
+    comment_db.save(paper)
+
+    return JsonResponse({'status' : True, 'id' : comment_object['id']})
+
+@csrf_exempt
+@require_POST
+def delete_comment(request):
+    params = request.POST
+
+    if not _check_user_secret(params):
+        return HttpResponseBadRequest('Unable to verify user identity.')
+
+    paper_id = params['paper_id']
+    comment_id = params['comment_id']
+
+    comment_db = couchdb_api.get_database(couchdb_api.DB_COMMENTS)
+
+    try:
+        paper = comment_db[paper_id]
+    except:
+        return HttpResponseBadRequest('Paper does not exist.')
+
+    found_comment = False
+    for index, comment in enumerate(paper['comments']):
+        if comment['id'] == comment_id:
+            found_comment = True
+            del paper['comments'][index]
+            break
+
+    if found_comment:
+        comment_db.save(paper)
+        return JsonResponse({'status' : True})
+    else:
+        return HttpResponseBadRequest('Comment does not exist.')
+
+
+
+@csrf_exempt
+@require_POST
+def like_paper(request):
+    params = request.POST
+
+    if not _check_user_secret(params):
+        return HttpResponseBadRequest('Unable to verify user identity.')
+
+    username = params['username']
+    paper_id = params['paper_id']
+
+    like_db = couchdb_api.get_database(couchdb_api.DB_LIKES)
+
+    try:
+        paper = like_db[paper_id]
+    except:
+        paper = {
+            '_id' : paper_id,
+            'likes' : {}
+        }
+
+    if username in paper['likes']: # Then unlike
+        del paper['likes'][username]
+    else: # Then like
+        like_object = {
+            'time' : datetime.datetime.now().isoformat(),
+        }
+        paper['likes'][username] = like_object
+    like_db.save(paper)
+
+    return JsonResponse({'status' : True})
