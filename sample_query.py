@@ -20,6 +20,7 @@ def check_registration(session):
     data = {
                 'username' : 'hptruong',
                 'password' : 'supersecret',
+                'email' : 'hptruong93@gmail.com',
             }
 
     r = session.post(url, data = data)
@@ -42,7 +43,7 @@ def check_password_reset(session):
     data = {
         'username' : 'hptruong',
         'password' : 'whitefox',
-        'secret' : 'd9ea9b4c-a32e-4147-a856-c06d1f4d870c'
+        'secret' : '17f70961-bb88-4974-8674-bc790c10b2ee'
     }
     r = session.post(url, data = data)
 

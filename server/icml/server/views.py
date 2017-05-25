@@ -9,6 +9,7 @@ from django import shortcuts
 from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
+import email_utils
 from server import couchdb_api
 
 def index(request):
@@ -18,8 +19,13 @@ def index(request):
 @require_POST
 def registration(request):
     params = request.POST
-    username = params['username']
-    password = params['password']
+
+    try:
+        username = params['username']
+        password = params['password']
+        email = params['email']
+    except:
+        return HttpResponseBadRequest('Missing required field(s) during registration.')
 
     try:
         new_user = couchdb_api.SERVER.add_user(username, password, roles=None)
@@ -58,6 +64,12 @@ def registration(request):
 
     new_user_database.save(secret_doc)
 
+    email_doc = {
+        '_id' : 'email',
+        'value' : email
+    }
+    new_user_database.save(email_doc)
+
     # print new_user_database['_security']
 
     return JsonResponse({'status' : True, 'message' : str(new_user)})
@@ -68,6 +80,12 @@ def request_reset_password(request):
     params = request.POST
 
     username = params['username']
+    try:
+        user_db = couchdb_api.get_database(username)
+        user_email = user_db['email']['value']
+    except:
+        return HttpResponseBadRequest('Username or email does not exist.')
+
     secret = str(uuid.uuid4())
 
     password_reset_db = couchdb_api.get_database(couchdb_api.DB_PASSWORD_RESET)
@@ -82,6 +100,7 @@ def request_reset_password(request):
     password_reset_db.save(secret_doc)
 
     # TODO: send out email once we determined which email server to use.
+    email_utils.send_email(user_email, 'Password reset secret', 'Please use this secret {}'.format(secret))
 
     return JsonResponse({'status' : True, 'message' : 'Registered reset password secret.'})
 
@@ -123,11 +142,8 @@ def _check_user_secret(authenticated_post_request_params):
         secret = authenticated_post_request_params['secret']
         user_db = couchdb_api.get_database(username)
 
-        print "three %s" % secret
         return user_db['secret']['value'] == secret
     except:
-        import traceback
-        print traceback.format_exc()
         return False
 
 @csrf_exempt
@@ -192,7 +208,6 @@ def delete_comment(request):
         return JsonResponse({'status' : True})
     else:
         return HttpResponseBadRequest('Comment does not exist.')
-
 
 
 @csrf_exempt

@@ -18,5 +18,5 @@ DB_COMMENTS = 'usercomments'
 DB_LIKES = 'userlikes'
 
 def get_database(name):
-	# return Database(_DB_CREDENTIALS + '/{}'.format(name))
-	return SERVER[name]
+    # return Database(_DB_CREDENTIALS + '/{}'.format(name))
+    return SERVER[name]
