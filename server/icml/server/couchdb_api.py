@@ -16,6 +16,7 @@ DB_SESSIONS = 'sessions'
 
 DB_COMMENTS = 'usercomments'
 DB_LIKES = 'userlikes'
+DB_REVERSED_LIKES = 'userlikes_reversed' # For each user stores the papers that they like
 
 def get_database(name):
     # return Database(_DB_CREDENTIALS + '/{}'.format(name))

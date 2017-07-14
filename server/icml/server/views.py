@@ -1,5 +1,6 @@
 import uuid
 import datetime
+import traceback
 
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseBadRequest, HttpResponseNotFound
 from django.http import JsonResponse
@@ -144,6 +145,7 @@ def _check_user_secret(authenticated_post_request_params):
 
         return user_db['secret']['value'] == secret
     except:
+        traceback.print_exc()
         return False
 
 @csrf_exempt
@@ -222,6 +224,7 @@ def like_paper(request):
     paper_id = params['paper_id']
 
     like_db = couchdb_api.get_database(couchdb_api.DB_LIKES)
+    reversed_like_db = couchdb_api.get_database(couchdb_api.DB_REVERSED_LIKES)
 
     try:
         paper = like_db[paper_id]
@@ -231,13 +234,25 @@ def like_paper(request):
             'likes' : {}
         }
 
+    try:
+        user = reversed_like_db[username]
+    except:
+        user = {
+            '_id' : username,
+            'likes' : {}
+        }
+
     if username in paper['likes']: # Then unlike
         del paper['likes'][username]
+        del user['likes'][paper_id]
     else: # Then like
         like_object = {
             'time' : datetime.datetime.now().isoformat(),
         }
         paper['likes'][username] = like_object
+        user['likes'][paper_id] = like_object
+
     like_db.save(paper)
+    reversed_like_db.save(user)
 
     return JsonResponse({'status' : True})
