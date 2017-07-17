@@ -1,6 +1,9 @@
 import uuid
 import datetime
 import traceback
+import re
+
+import couchdb
 
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseBadRequest, HttpResponseNotFound
 from django.http import JsonResponse
@@ -13,8 +16,10 @@ from django.views.decorators.csrf import csrf_exempt
 from server import email_utils
 from server import couchdb_api
 
+username_regex = re.compile('^([a-z0-9_\\(\\)\\+\\-\\$])+$') # Only allowing lower case letter, _, (, ), $, + and -
+
 def index(request):
-    return HttpResponse("Test")
+    return HttpResponse("There is nothing here.")
 
 @csrf_exempt
 @require_POST
@@ -28,11 +33,13 @@ def registration(request):
     except:
         return HttpResponseBadRequest('Missing required field(s) during registration.')
 
+    if not username_regex.match(username):
+        return HttpResponseBadRequest('Invalid username. Must be containing only lower case letter, numbers, _, (, ), _, $, + or -.')
+
     try:
         new_user = couchdb_api.SERVER.add_user(username, password, roles=None)
-    except:
+    except couchdb.http.ResourceConflict as e:
         return HttpResponseBadRequest('Username existed.')
-
 
     new_user_database = couchdb_api.SERVER.create(username)
     security_doc = {
