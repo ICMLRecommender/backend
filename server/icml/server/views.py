@@ -99,6 +99,7 @@ def request_reset_password(request):
     password_reset_db = couchdb_api.get_database(couchdb_api.DB_PASSWORD_RESET)
     try:
         secret_doc = password_reset_db[username]
+        secret_doc['secret'] = secret
     except: # If already exists
         secret_doc = {
             '_id' : username,
