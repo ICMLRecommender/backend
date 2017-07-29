@@ -21,4 +21,5 @@ urlpatterns = [
     # url(r'^admin/', admin.site.urls),
     url(r'^$', views.index),
     url(r'^icml/', include('server.urls')),
+    url(r'^.*$', views.index),
 ]
