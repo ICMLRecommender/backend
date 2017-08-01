@@ -56,6 +56,6 @@ def Send(subject, EEfrom, fromName, to, bodyText, isTransactional = True):
 def send_email(dest, subject, text):
     return Send(subject,
                 "postmaster@icml.papro.org.uk",
-                "ICML 2017 Team",
+                "ICML 2017 Recommender App Team",
                 dest,
                 text + "\n\n")
