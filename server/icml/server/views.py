@@ -109,7 +109,7 @@ def request_reset_password(request):
     password_reset_db.save(secret_doc)
 
     # TODO: send out email once we determined which email server to use.
-    email_utils.send_email(user_email, 'ICML 2017 Password Reset Secret', 'Hello,\n\nYou have recently requested to reset your password for ICML 2017 web site. Please use this secret key to reset your password: \n{}\n\nIf you did not request a password reset, please ignore this email.\n\nThank you\nThe ICML 2017 Website Team.'.format(secret))
+    email_utils.send_email(user_email, 'ICML 2017 Password Reset Secret', 'Hello,\n\nYou have recently requested to reset your password for ICML 2017 web site. Please use this secret key to reset your password: \n{}\n\nIf you did not request a password reset, please ignore this email.\n\nThank you\nThe ICML 2017 Recommender App Team.'.format(secret))
 
     return JsonResponse({'status' : True, 'message' : 'Registered reset password secret.'})
 
