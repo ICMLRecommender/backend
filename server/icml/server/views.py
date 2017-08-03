@@ -16,7 +16,7 @@ from django.views.decorators.csrf import csrf_exempt
 from server import email_utils
 from server import couchdb_api
 
-username_regex = re.compile('^([a-z0-9_])+$') # Only allowing lower case letter, and _
+username_regex = re.compile('^[a-z]([a-z0-9_])*$') # Only allowing lower case letter, and _
 
 def index(request):
     return HttpResponse("There is nothing here.")
@@ -34,7 +34,7 @@ def registration(request):
         return HttpResponseBadRequest('Missing required field(s) during registration.')
 
     if not username_regex.match(username):
-        return HttpResponseBadRequest('Invalid username. It must contain only lower case letter, numbers, or _.')
+        return HttpResponseBadRequest('Invalid username. It must start with a lower case letter and must contain only lower case letter, numbers, or _.')
 
     try:
         new_user = couchdb_api.SERVER.add_user(username, password, roles=None)
